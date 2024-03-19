@@ -1,0 +1,106 @@
+default:
+  image: "node:18.12-buster-slim"
+
+stages:
+  - install
+  - quality
+  - generate_docs
+
+cache:
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - node_modules/*
+
+install_job:
+  stage: install
+  script:
+    - echo @workstore:registry=https://gitlab.com/api/v4/projects/45104916/packages/npm/ > .npmrc
+    - echo //gitlab.com/api/v4/projects/45104916/packages/npm/:_authToken="${_LOAD_REGISTRY_KEY}" >> .npmrc
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/*
+
+lint_job:
+  stage: quality
+  needs:
+    - install_job
+  script:
+    - npm run lint
+
+test_job:
+  stage: quality
+  coverage: /^Lines\s*:\s*([^%]+)/
+  needs:
+    - install_job
+  script:
+    - npm run test:cov
+  artifacts:
+    when: on_success
+    paths:
+      - coverage
+    reports:
+      junit:
+        - junit.xml
+
+openapi_job:
+  stage: generate_docs
+  only:
+    - master
+    - release
+  needs:
+    - lint_job
+    - test_job
+  script:
+    - npm run openapi -- --baseOutDir=./public/${CI_COMMIT_BRANCH}
+  artifacts:
+    paths:
+      - public/${CI_COMMIT_BRANCH}/openapi
+
+reference_job:
+  stage: generate_docs
+  only:
+    - master
+    - release
+  needs:
+    - lint_job
+    - test_job
+  script:
+    - mkdir -p ./public/${CI_COMMIT_BRANCH}/docs
+    - npm run doc -- --out ./public/${CI_COMMIT_BRANCH}/docs
+  artifacts:
+    paths:
+      - public/${CI_COMMIT_BRANCH}/docs
+
+collect_coverage_job:
+  stage: generate_docs
+  only:
+    - master
+    - release
+  dependencies:
+    - test_job
+  needs:
+    - lint_job
+    - test_job
+  script:
+    - ls
+    - mkdir -p ./public/${CI_COMMIT_BRANCH}/coverage
+    - cp -R ./coverage ./public/${CI_COMMIT_BRANCH}/
+  artifacts:
+    paths:
+      - public/${CI_COMMIT_BRANCH}/coverage
+
+pages:
+  stage: generate_docs
+  only:
+    - master
+    - release
+  needs:
+    - openapi_job
+    - reference_job
+    - collect_coverage_job
+  script:
+    - ls
+  artifacts:
+    paths:
+      - public

@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  api:
+    restart: on-failure
+    image: node:18.12-buster-slim
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    working_dir: "/var/api"
+    volumes:
+      - ./src:/src:rw
+      - ./.eslintrc.js:/.eslintrc.js:rw
+      - ./entrypoint.sh:/entrypoint.sh:rw
+      - ./nest-cli.json:/nest-cli.json:rw
+      - ./package.json:/package.json:rw
+      - ./package-lock.json:/package-lock.json:rw
+      - ./.env:/.env:rw
+      - ./env.example:/env.example:rw
+      - ./tsconfig.json:/tsconfig.json:rw
+      - ./tsconfig.build.json:/tsconfig.build.json:rw
+    entrypoint: [sh, /entrypoint.sh]
+
+  db:
+    restart: on-failure
+    image: postgres:14.6-alpine3.17
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${TYPEORM_USER}
+      - POSTGRES_PASSWORD=${TYPEORM_PASSWORD}
+      - POSTGRES_DB=${TYPEORM_DB}
+    ports:
+      - "${TYPEORM_PORT}:${TYPEORM_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TYPEORM_USER} -d ${TYPEORM_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+

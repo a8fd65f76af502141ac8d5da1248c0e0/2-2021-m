@@ -1,0 +1,52 @@
+{
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^test/(.*)$": "<rootDir>/test/$1"
+  },
+  "testMatch": [
+      "<rootDir>/test/**/*.test.ts"
+  ],
+  "rootDir": "./",
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "ignoreCoverageForDecorators": true,
+        "ignoreCoverageForAllDecorators": true
+      }
+    ]
+  },
+  "reporters": ["default", "jest-junit"],
+  "coverageReporters": ["text", "text-summary", "html"],
+  "coverageThreshold": {
+    "global": {
+      "statements": 70
+    }
+  },
+  "coverageDirectory": "./coverage",
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "coveragePathIgnorePatterns": [
+    "/node_modules/"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/main.ts",
+    "!src/**/*.dto.ts",
+    "!src/**/*.exception.ts",
+    "!src/**/*.module.ts",
+    "!src/config/*.ts",
+    "!src/core/**/*.ts",
+    "!src/**/*.entity.ts",
+    "!src/**/*.entity.impl.ts",
+    "!src/**/*.port.ts",
+    "!src/**/*.usecase.ts",
+    "!src/**/port/factory/**.ts",
+    "!src/**/*.interface.ts",
+    "!src/**/port/**/*.ts"
+  ],
+  "testEnvironment": "node"
+}
