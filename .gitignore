@@ -1,7 +1,7 @@
 #data and assets
 data
+dist
 
-/**/*.js
 #sensitive data
 *.env*
 
